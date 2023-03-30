@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -13,8 +13,11 @@ import {
   StyleSheet,
 } from 'react-native'
 import CustomPressable from './CustomPressable'
-import {px2rem} from '../utils/screen';
+import {px2rem, screenW} from '../utils/screen';
 import PagerView from 'react-native-pager-view';
+
+const TAB_PH = px2rem(11)
+const TAB_WIDTH = px2rem(80)
 
 export const tabs = [
   '111111',
@@ -39,7 +42,7 @@ export const tabs = [
 ]
 
 const SCROLLVIEW_LEFT = 0
-const SCROLL_BAR = 15
+const SCROLL_BAR = px2rem(15)
 
 type Props = {
   onChange: (v: any) => void,
@@ -64,12 +67,20 @@ const TabPageView = (props: Props) => {
 
   const scrollOffsetAnimatedValue = React.useRef(new Animated.Value(0)).current
   const positionAnimatedValue = React.useRef(new Animated.Value(0)).current
-  const [activeIndex, setActiveIndex] = useState(0)
-  const pagerViewRef = useRef(null)
+  const pagerViewRef: any = useRef(null)
   const pageScrollX = Animated.add(scrollOffsetAnimatedValue, positionAnimatedValue);
 
+  const tabWidth = TAB_WIDTH
+
+  const baseMargin = (tabWidth - SCROLL_BAR) / 2;
+  const translateX = pageScrollX.interpolate({
+    inputRange: [0, tabs.length - 1],
+    outputRange: [baseMargin, baseMargin + tabWidth * (tabs.length - 1)],
+    extrapolate: 'clamp',
+  })
+
   const onPageSelected = ({nativeEvent} : {nativeEvent: any}) => {
-    setActiveIndex(nativeEvent.position)
+    setActive(nativeEvent.position)
     // pagerViewRef.current?.setPage(nativeEvent.position);
   };
 
@@ -88,67 +99,62 @@ const TabPageView = (props: Props) => {
   );
 
   const handlePress = (item: string, index: number) => {
-    scrollViewRef.current?.scrollTo({
-      x: map[item] - (scrollViewWidth.current + px2rem(SCROLLVIEW_LEFT)) / 2,
-      duration,
-      animated: true
-    })
     setActive(index)
-    animatedStart(localX[index])
-    onChange({ item, index })
-    setShow(false)
-  }
-
-  const onSelect = (key: string) => {
-    scrollViewRef.current?.scrollTo({
-      x: map[key],
-      duration,
-      animated: true
-    })
-    animatedStart(map[key])
-    const index = tabs.indexOf(key)
-    setActive(index)
-    onChange({ item: key, index })
-    setShow(false)
-  }
-
-  const handleLayout = (
-    event: LayoutChangeEvent,
-    item: string,
-    index: number
-  ) => {
-    const { width, x } = event.nativeEvent.layout
-    const local = (width - px2rem(SCROLL_BAR)) / 2 + x
-    localX[index] = local
-    if (!map[item]) {
-      map[item] = local
-    }
-    if (!render) {
-      setTimeout(() => {
-        setRender(true)
-      }, 0)
-    }
-    // animatedStart(localX[0]);
-  }
-
-  const animatedStart = (localX: any) => {
-    Animated.timing(
-      scrollX, //动画中的变量值
-      {
-        toValue: localX,
-        duration, //动画时长
-        useNativeDriver: true,
-        easing: Easing.out(Easing.cubic)
-      }
-    ).start() //开始执行动画
   }
 
   useEffect(() => {
-    if (render && localX[0]) {
-      animatedStart(localX[0])
-      setDuration(500)
-    }
-  }, [render])
+    pagerViewRef.current?.setPage(active);
+}, [active]);
+  // const handlePress = (item: string, index: number) => {
+  //   scrollViewRef.current?.scrollTo({
+  //     x: map[item] - (scrollViewWidth.current + px2rem(SCROLLVIEW_LEFT)) / 2,
+  //     duration,
+  //     animated: true
+  //   })
+  //   setActive(index)
+  //   animatedStart(localX[index])
+  //   onChange({ item, index })
+  //   setShow(false)
+  // }
+
+  const handleLayout = () => {}
+
+  // const handleLayout = (
+  //   event: LayoutChangeEvent,
+  //   item: string,
+  //   index: number
+  // ) => {
+  //   const { width, x } = event.nativeEvent.layout
+  //   const local = (width - px2rem(SCROLL_BAR)) / 2 + x
+  //   localX[index] = local
+  //   if (!map[item]) {
+  //     map[item] = local
+  //   }
+  //   if (!render) {
+  //     setTimeout(() => {
+  //       setRender(true)
+  //     }, 0)
+  //   }
+  // }
+
+  // const animatedStart = (localX: any) => {
+  //   Animated.timing(
+  //     scrollX, //动画中的变量值
+  //     {
+  //       toValue: localX,
+  //       duration, //动画时长
+  //       useNativeDriver: true,
+  //       easing: Easing.out(Easing.cubic)
+  //     }
+  //   ).start() //开始执行动画
+  // }
+
+  // useEffect(() => {
+  //   if (render && localX[0]) {
+  //     animatedStart(localX[0])
+  //     setDuration(500)
+  //   }
+  // }, [render])
 
   return (
     <View style={[styles.con, style]}>
@@ -187,7 +193,7 @@ const TabPageView = (props: Props) => {
             )
           })}
           <Animated.View
-            style={[styles.scrollBar, { transform: [{ translateX: scrollX }] }]}
+            style={[styles.scrollBar, { transform: [{ translateX: translateX }] }]}
           />
         </ScrollView>
       </View>
@@ -222,6 +228,7 @@ const styles = StyleSheet.create({
   container: {
     // width: '100%',
     height: px2rem(30),
+    flex: 1,
     // paddingHorizontal: 11,
     flexDirection: 'row',
     // borderBottomWidth: 1,
@@ -230,9 +237,11 @@ const styles = StyleSheet.create({
     marginLeft: SCROLLVIEW_LEFT
   },
   item: {
-    paddingHorizontal: px2rem(11),
+    paddingHorizontal: TAB_PH,
+    width: TAB_WIDTH,
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   itemText: {
     color: '#3C3C3C',

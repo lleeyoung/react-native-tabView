@@ -76,7 +76,7 @@ function App(): JSX.Element {
           tabs.map((item, index) => {
             return (
               <View key={item} style={{height: px2rem(200), backgroundColor: '#e0e0e0'}}>
-              <Text>{item}-{index}</Text>
+              <Text>{item}-{index + 1}</Text>
             </View>
             )
           })
