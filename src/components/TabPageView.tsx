@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,13 @@ import {
   Easing,
   Dimensions,
   StyleSheet,
-} from 'react-native'
-import CustomPressable from './CustomPressable'
+} from 'react-native';
+import CustomPressable from './CustomPressable';
 import {px2rem, screenW} from '../utils/screen';
 import PagerView from 'react-native-pager-view';
 
-const TAB_PH = px2rem(11)
-const TAB_WIDTH = px2rem(80)
+const TAB_PH = px2rem(11);
+const TAB_WIDTH = px2rem(80);
 
 export const tabs = [
   '111111',
@@ -39,48 +39,56 @@ export const tabs = [
   'hhhhhh',
   'iiiiii',
   'jjjjjj',
-]
+];
 
-const SCROLLVIEW_LEFT = 0
-const SCROLL_BAR = px2rem(15)
+const SCROLLVIEW_LEFT = 0;
+const SCROLL_BAR = px2rem(15);
 
 type Props = {
-  onChange: (v: any) => void,
-  children: React.ReactNode,
-  style: any
-}
+  onChange: (v: any) => void;
+  children: React.ReactNode;
+  style: any;
+};
 
 const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
 
 const TabPageView = (props: Props) => {
-  const { onChange, children, style } = props
+  const {onChange, children, style} = props;
 
-  const [active, setActive] = useState(0)
-  const scrollX = useRef(new Animated.Value(0)).current
-  const localX: any = useRef([]).current
-  const [duration, setDuration] = useState<number>(500)
-  const [render, setRender] = useState(false)
-  const [show, setShow] = useState(false)
-  const map = useRef<any>({}).current
-  const scrollViewRef = useRef<any>(null)
-  const scrollViewWidth = useRef<any>(Dimensions.get('window').width)
+  const [active, setActive] = useState(0);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const localX: any = useRef([]).current;
+  const [duration, setDuration] = useState<number>(500);
+  const [render, setRender] = useState(false);
+  const [show, setShow] = useState(false);
+  const map = useRef<any>({}).current;
+  const scrollViewRef = useRef<any>(null);
+  const scrollViewWidth = useRef<any>(Dimensions.get('window').width);
 
-  const scrollOffsetAnimatedValue = React.useRef(new Animated.Value(0)).current
-  const positionAnimatedValue = React.useRef(new Animated.Value(0)).current
-  const pagerViewRef: any = useRef(null)
-  const pageScrollX = Animated.add(scrollOffsetAnimatedValue, positionAnimatedValue);
+  const scrollOffsetAnimatedValue = React.useRef(new Animated.Value(0)).current;
+  const positionAnimatedValue = React.useRef(new Animated.Value(0)).current;
+  const pagerViewRef: any = useRef(null);
+  const pageScrollX = Animated.add(
+    scrollOffsetAnimatedValue,
+    positionAnimatedValue,
+  );
 
-  const tabWidth = TAB_WIDTH
+  const tabWidth = TAB_WIDTH;
 
   const baseMargin = (tabWidth - SCROLL_BAR) / 2;
   const translateX = pageScrollX.interpolate({
     inputRange: [0, tabs.length - 1],
     outputRange: [baseMargin, baseMargin + tabWidth * (tabs.length - 1)],
     extrapolate: 'clamp',
-  })
+  });
 
-  const onPageSelected = ({nativeEvent} : {nativeEvent: any}) => {
-    setActive(nativeEvent.position)
+  const onPageSelected = ({nativeEvent}: {nativeEvent: any}) => {
+    setActive(nativeEvent.position);
+    scrollViewRef.current?.scrollTo({
+      x: TAB_WIDTH * nativeEvent.position - scrollViewWidth.current / 2 + TAB_WIDTH / 2,
+      duration,
+      animated: true
+    })
     // pagerViewRef.current?.setPage(nativeEvent.position);
   };
 
@@ -99,12 +107,18 @@ const TabPageView = (props: Props) => {
   );
 
   const handlePress = (item: string, index: number) => {
-    setActive(index)
-  }
+    setActive(index);
+    scrollViewRef.current?.scrollTo({
+      x: TAB_WIDTH * index - scrollViewWidth.current / 2 + TAB_WIDTH / 2,
+      duration,
+      animated: true
+    })
+  };
 
   useEffect(() => {
     pagerViewRef.current?.setPage(active);
-}, [active]);
+  }, [active]);
+
   // const handlePress = (item: string, index: number) => {
   //   scrollViewRef.current?.scrollTo({
   //     x: map[item] - (scrollViewWidth.current + px2rem(SCROLLVIEW_LEFT)) / 2,
@@ -117,25 +131,29 @@ const TabPageView = (props: Props) => {
   //   setShow(false)
   // }
 
-  const handleLayout = () => {}
-
   // const handleLayout = (
   //   event: LayoutChangeEvent,
   //   item: string,
-  //   index: number
-  // ) => {
-  //   const { width, x } = event.nativeEvent.layout
-  //   const local = (width - px2rem(SCROLL_BAR)) / 2 + x
-  //   localX[index] = local
-  //   if (!map[item]) {
-  //     map[item] = local
-  //   }
-  //   if (!render) {
-  //     setTimeout(() => {
-  //       setRender(true)
-  //     }, 0)
-  //   }
-  // }
+  //   index: number,
+  // ) => {};
+
+  const handleLayout = (
+    event: LayoutChangeEvent,
+    item: string,
+    index: number
+  ) => {
+    const { width, x } = event.nativeEvent.layout
+    const local = (width - px2rem(SCROLL_BAR)) / 2 + x
+    localX[index] = local
+    if (!map[item]) {
+      map[item] = local
+    }
+    if (!render) {
+      setTimeout(() => {
+        setRender(true)
+      }, 0)
+    }
+  }
 
   // const animatedStart = (localX: any) => {
   //   Animated.timing(
@@ -165,22 +183,22 @@ const TabPageView = (props: Props) => {
           showsHorizontalScrollIndicator={false}
           ref={scrollViewRef}
           onLayout={e => {
-            const { width } = e.nativeEvent.layout
-            scrollViewWidth.current = width
+            const {width} = e.nativeEvent.layout;
+            scrollViewWidth.current = width;
           }}
           snapToAlignment={'start'}>
           {tabs.map((item, index) => {
             return (
               <TouchableWithoutFeedback
                 key={item}
-                hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+                hitSlop={{top: 10, left: 10, bottom: 10, right: 10}}
                 onPress={e => {
-                  handlePress(item, index)
+                  handlePress(item, index);
                 }}>
                 <View
                   style={[styles.item]}
                   onLayout={e => {
-                    handleLayout(e, item, index)
+                    handleLayout(e, item, index);
                   }}>
                   <Text
                     style={
@@ -190,10 +208,10 @@ const TabPageView = (props: Props) => {
                   </Text>
                 </View>
               </TouchableWithoutFeedback>
-            )
+            );
           })}
           <Animated.View
-            style={[styles.scrollBar, { transform: [{ translateX: translateX }] }]}
+            style={[styles.scrollBar, {transform: [{translateX: translateX}]}]}
           />
         </ScrollView>
       </View>
@@ -208,8 +226,8 @@ const TabPageView = (props: Props) => {
         ))}
       </AnimatedPagerView>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   con: {
@@ -217,12 +235,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     zIndex: 3,
     backgroundColor: '#ffffff',
-    height: px2rem(200)
+    height: px2rem(200),
   },
   tabBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#ffffff',
     // position: 'relative'
   },
   container: {
@@ -234,23 +252,23 @@ const styles = StyleSheet.create({
     // borderBottomWidth: 1,
     // borderBottomColor: '#EBEBEB',
     position: 'relative',
-    marginLeft: SCROLLVIEW_LEFT
+    marginLeft: SCROLLVIEW_LEFT,
   },
   item: {
     paddingHorizontal: TAB_PH,
     width: TAB_WIDTH,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   itemText: {
     color: '#3C3C3C',
-    fontSize: 12
+    fontSize: 12,
   },
   activeItemText: {
     color: '#E60012',
     fontSize: 12,
-    fontWeight: '500'
+    fontWeight: '500',
   },
   scrollBar: {
     width: SCROLL_BAR,
@@ -260,19 +278,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     bottom: 0,
-    zIndex: 100
+    zIndex: 100,
   },
   pmBox: {
     width: px2rem(43),
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   pmIcon: {
     width: px2rem(16),
     height: px2rem(16),
-    position: 'relative'
+    position: 'relative',
   },
   pmNumber: {
     width: px2rem(10),
@@ -284,12 +302,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6262C',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   pmNumberText: {
     fontSize: 7,
     color: '#fff',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   linearGradient: {
     width: px2rem(6),
@@ -300,7 +318,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     opacity: 0.2,
     borderLeftWidth: 0,
-    borderRadius: 2
+    borderRadius: 2,
   },
   drawer: {
     width: '90%',
@@ -314,7 +332,7 @@ const styles = StyleSheet.create({
     shadowColor: 'rgba(0, 0, 0, 1)',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 2,
     },
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -322,7 +340,7 @@ const styles = StyleSheet.create({
     zIndex: 10000,
     position: 'absolute',
     left: '5%',
-    top: px2rem(31)
+    top: px2rem(31),
   },
   drawerItem: {
     marginHorizontal: px2rem(12),
@@ -338,6 +356,6 @@ const styles = StyleSheet.create({
     color: '#3C3C3C',
     fontSize: 12,
   },
-})
+});
 
-export default TabPageView
+export default TabPageView;

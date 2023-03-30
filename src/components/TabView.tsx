@@ -49,6 +49,7 @@ const TabView = (props: Props) => {
   const [active, setActive] = useState(0)
   const scrollX = useRef(new Animated.Value(0)).current
   const localX: any = useRef([]).current
+  const tabWidths: any = useRef([]).current
   const [duration, setDuration] = useState<number>(500)
   const [render, setRender] = useState(false)
   const [show, setShow] = useState(false)
@@ -58,7 +59,7 @@ const TabView = (props: Props) => {
 
   const handlePress = (item: string, index: number) => {
     scrollViewRef.current?.scrollTo({
-      x: map[item] - (scrollViewWidth.current + px2rem(SCROLLVIEW_LEFT)) / 2,
+      x: map[item] - (scrollViewWidth.current + px2rem(SCROLLVIEW_LEFT)) / 2 + (tabWidths[index] / 2 - localX[0]),
       duration,
       animated: true
     })
@@ -89,6 +90,7 @@ const TabView = (props: Props) => {
     const { width, x } = event.nativeEvent.layout
     const local = (width - px2rem(SCROLL_BAR)) / 2 + x
     localX[index] = local
+    tabWidths[index] = width
     if (!map[item]) {
       map[item] = local
     }
