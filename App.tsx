@@ -62,14 +62,6 @@ function App(): JSX.Element {
           <Text>444</Text>
         </View>
       </AnimatedPager>
-      {/* <PagerView style={styles.pagerView} initialPage={0} ref={pagerViewRef}>
-        <View key="1">
-          <Text>First page</Text>
-        </View>
-        <View key="2">
-          <Text>Second page</Text>
-        </View>
-      </PagerView> */}
       <TabView onChange={() => {}}/>
       <TabPageView onChange={() => {}} style={{marginTop: px2rem(20)}}>
         {
@@ -81,7 +73,6 @@ function App(): JSX.Element {
             )
           })
         }
-       
       </TabPageView>
     </SafeAreaView>
   );
