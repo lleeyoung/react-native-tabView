@@ -1,40 +1,31 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-import React, { useRef } from 'react';
-import type {PropsWithChildren} from 'react';
+import React from 'react';
 import {
   SafeAreaView,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   useColorScheme,
   View,
-  Pressable
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-import AnimatedPager from './src/components/AnimatedPager';
-import PagerView from 'react-native-pager-view';
 import TabView from './src/components/TabView';
-import { px2rem } from './src/utils/screen';
-import TabPageView, { tabs } from './src/components/TabPageView';
+import {px2rem} from './src/utils/screen';
+import TabPageView, {tabs} from './src/components/TabPageView';
 
-
+const PageView = ({item, index}: {item: any, index: number}) => {
+  return (
+    <View
+      key={item}
+      style={{height: px2rem(200), backgroundColor: '#e0e0e0'}}>
+      <Text>
+        {item}-{index + 1}
+      </Text>
+    </View>
+  );
+}
 
 function App(): JSX.Element {
-  const pagerViewRef: any = useRef(null);
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -44,35 +35,11 @@ function App(): JSX.Element {
 
   return (
     <SafeAreaView style={backgroundStyle}>
-
-      <AnimatedPager
-        tabStyle={{}}
-        tabData={[{title: '111'}, {title: '222'}, {title: '333'}, {title: '444'}]}
-        >
-        <View style={{height: px2rem(200), backgroundColor: 'yellow'}}>
-          <Text>1111</Text>
-        </View>
-        <View style={{height: px2rem(200), backgroundColor: 'blue'}}>
-          <Text>2222</Text>
-        </View>
-        <View style={{height: px2rem(200), backgroundColor: 'red'}}>
-          <Text>333</Text>
-        </View>
-        <View style={{height: px2rem(200), backgroundColor: '#e0e0e0'}}>
-          <Text>444</Text>
-        </View>
-      </AnimatedPager>
-      <TabView onChange={() => {}}/>
+      <TabView onChange={() => {}} />
       <TabPageView onChange={() => {}} style={{marginTop: px2rem(20)}}>
-        {
-          tabs.map((item, index) => {
-            return (
-              <View key={item} style={{height: px2rem(200), backgroundColor: '#e0e0e0'}}>
-              <Text>{item}-{index + 1}</Text>
-            </View>
-            )
-          })
-        }
+        {tabs.map((item, index) => {
+          return <PageView item={item} index={index}/>
+        })}
       </TabPageView>
     </SafeAreaView>
   );
